@@ -150,6 +150,70 @@ class EntsoeRawClient:
         ret_str = dtm.strftime(fmt)
         return ret_str
 
+    def query_scheduled_commercial_exchanges(self, country_code_from,
+                                             country_code_to,
+                                             start, end,
+                                             ma_type,
+                                             lookup_bzones=False):
+        """
+        Parameters
+        ----------
+        country_code_from : str
+        country_code_to : str
+        start : pd.Timestamp
+        end : pd.Timestamp
+        lookup_bzones : bool
+            if True, country_code is expected to be a bidding zone
+        Returns
+        -------
+        str
+        """
+        if not lookup_bzones:
+            domain_in = DOMAIN_MAPPINGS[country_code_to]
+            domain_out = DOMAIN_MAPPINGS[country_code_from]
+        else:
+            domain_in = BIDDING_ZONES[country_code_to]
+            domain_out = BIDDING_ZONES[country_code_from]
+        inv_marketagreement = {v: k for k, v in MARKETAGREEMENTTYPE.items()}
+        params = {
+            'documentType': 'A09',
+            'contract_MarketAgreement.Type': inv_marketagreement[ma_type],
+            'in_Domain': domain_in,
+            'out_Domain': domain_out
+        }
+        response = self.base_request(params=params, start=start, end=end)
+        return response.text
+
+    def query_forecasted_capacities(self, country_code_from, country_code_to,
+                                    start, end, lookup_bzones=False):
+        """
+        Parameters
+        ----------
+        country_code_from : str
+        country_code_to : str
+        start : pd.Timestamp
+        end : pd.Timestamp
+        lookup_bzones : bool
+            if True, country_code is expected to be a bidding zone
+        Returns
+        -------
+        str
+        """
+        if not lookup_bzones:
+            domain_in = DOMAIN_MAPPINGS[country_code_to]
+            domain_out = DOMAIN_MAPPINGS[country_code_from]
+        else:
+            domain_in = BIDDING_ZONES[country_code_to]
+            domain_out = BIDDING_ZONES[country_code_from]
+        params = {
+            'documentType': 'A61',
+            'contract_MarketAgreement.Type': 'A01',
+            'in_Domain': domain_in,
+            'out_Domain': domain_out
+        }
+        response = self.base_request(params=params, start=start, end=end)
+        return response.text
+
     def query_day_ahead_prices(self, country_code, start, end):
         """
         Parameters
